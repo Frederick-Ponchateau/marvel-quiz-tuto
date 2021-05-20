@@ -1,21 +1,52 @@
-import React , {useState} from 'react'
+import React , {useState, useContext} from 'react';
+import {FirebaseContext} from '../Firebase';
 
 const Singup = () => {
+
+    const firebase = useContext(FirebaseContext);
+
     const data ={
         pseudo: "",
         email: "",
         password:'',
         confirmPassword:''
     }
-    const [loginData, setloginData] = useState(data)
+    const erreur = '';
+
+    const [loginData, setLoginData] = useState(data);
+    const [error, setError] = useState(erreur);
+
     const handleChange = e =>{
-        setloginData({...loginData, [e.target.id]: e.target.value});
-        
+        setLoginData({...loginData, [e.target.id]: e.target.value});
     }
    
+    const handleSubmit = e =>{
+        e.preventDefault();
+        const {email, password } = loginData;
+        firebase.signupUser(email, password)
+        .then(user => {
+            /**********************************************************************
+             * * On efface les donnés presente dans le formulaire via le state dans le cas ou la connexion est faite
+             **********************************************************************/
+            setLoginData({...data});
+            setError(erreur);
+        })
+        .catch(error => {
+            setError(error);
+            setLoginData({...data});
+        })
+    }
+
     const {pseudo,email,password,confirmPassword} = loginData;
+
     const btn = pseudo === '' || email === '' || password === '' || password !== confirmPassword
     ? <button disabled> Inscription </button> : <button> Inscription </button>;
+
+
+    /************
+     * * Gestion msg erreurs
+     ****************/
+    const errorMsg = error !== '' && <span>{error.message}</span>;
 
     return (
         <div className="singUpLoginBox">
@@ -24,8 +55,11 @@ const Singup = () => {
                 </div>
                 <div className="formBoxRight">
                     <div className="formContent">
+
+                        {errorMsg}
+
                         <h2>Inscription</h2>
-                        <form>
+                        <form onSubmit={handleSubmit}>
                             <div className='inputBox'>
                                 <input onChange={handleChange} value={pseudo} type='text' id='pseudo' autoComplete='off' required />
                                 <label htmlFor="pseudo">Pseudo</label>                              
