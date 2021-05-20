@@ -16,16 +16,23 @@ const Singup = (props) => {
 
     const [loginData, setLoginData] = useState(data);
     const [error, setError] = useState(erreur);
-
+    const {pseudo,email,password,confirmPassword} = loginData;
+    
     const handleChange = e =>{
         setLoginData({...loginData, [e.target.id]: e.target.value});
     }
    
     const handleSubmit = e =>{
         e.preventDefault();
-        const {email, password } = loginData;
+        const {email, password,pseudo } = loginData;
         firebase.signupUser(email, password)
-        .then(user => {
+        .then( authUser =>{
+            return firebase.user(authUser.user.uid).set({
+                pseudo,
+                email
+            })
+        })
+        .then(() => {
             /**********************************************************************
              * * On efface les donnés presente dans le formulaire via le state dans le cas ou la connexion est faite
              **********************************************************************/
@@ -39,7 +46,6 @@ const Singup = (props) => {
         })
     }
 
-    const {pseudo,email,password,confirmPassword} = loginData;
 
     const btn = pseudo === '' || email === '' || password === '' || password !== confirmPassword
     ? <button disabled> Inscription </button> : <button> Inscription </button>;
