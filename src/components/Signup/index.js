@@ -1,7 +1,8 @@
 import React , {useState, useContext} from 'react';
+import {Link} from 'react-router-dom';
 import {FirebaseContext} from '../Firebase';
 
-const Singup = () => {
+const Singup = (props) => {
 
     const firebase = useContext(FirebaseContext);
 
@@ -30,6 +31,7 @@ const Singup = () => {
              **********************************************************************/
             setLoginData({...data});
             setError(erreur);
+            props.history.push('/welcome');
         })
         .catch(error => {
             setError(error);
@@ -78,6 +80,9 @@ const Singup = () => {
                             </div>
                             {btn}
                         </form>
+                        <div className="linkContainer">
+                            <Link className="simpleLink" to='/login'>Déjà inscrit? Connectez-vous.</Link>
+                        </div>
                     </div>
                 </div>
             </div>
