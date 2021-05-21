@@ -10,18 +10,33 @@ const Welcome = props => {
 
     const [userSession, setUserSession] = useState(null);
 
+    const [userData, setUserData] = useState(null);
+
     useEffect(() => {
        let listener = firebase.auth.onAuthStateChanged(user => {
-            if (user) {
-                setUserSession(user)
-            } else {
-              props.history.push('/');
-            }
-          });
+        if (user) {
+            setUserSession(user)
+        } else {
+            props.history.push('/');
+        }          
+        });
+        if(userSession !== null){
+            firebase.user(userSession.uid)
+            .get()
+            .then(doc => {
+                if(doc && doc.exists){
+                    const myData = doc.data();
+                    setUserData(myData);
+                }
+            })
+            .catch( error => {
+                console.log(error);
+            })
+        }
         return () => {
             listener()
         }
-    }, [])
+    }, [userSession])
 
     
    return userSession === null ?(
@@ -34,7 +49,7 @@ const Welcome = props => {
         <div className="quiz-bg">
             <div className="container">
                 <Logout/>
-                <Quiz/>
+                <Quiz userData={userData}/>
             </div>
         </div>
     )
