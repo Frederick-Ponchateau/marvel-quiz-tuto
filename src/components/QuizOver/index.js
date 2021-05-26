@@ -1,4 +1,5 @@
-import React, {Fragment,useEffect,useState} from 'react'
+import React, {Fragment,useEffect,useState} from 'react';
+import {GiTrophyCup} from 'react-icons/gi';
 
 const QuizOver = React.forwardRef((props,ref) => {
     //console.log(props);
@@ -8,7 +9,8 @@ const QuizOver = React.forwardRef((props,ref) => {
         score,
         maxQuestions,
         quizLevel,
-        percent 
+        percent,
+        loadLevelQuestions 
     }=props;
 
     const [asked, setasked] = useState([]);
@@ -19,6 +21,11 @@ const QuizOver = React.forwardRef((props,ref) => {
 
     const averageGrade = maxQuestions/2;
 
+    if(score < averageGrade){
+        //setTimeout(()=> loadLevelQuestions(0),3000);
+        setTimeout(()=> loadLevelQuestions(quizLevel),3000);
+    }
+
     const decision = score >= averageGrade ? (
         <Fragment>
             <div className="stepsBtnContainer">
@@ -27,13 +34,27 @@ const QuizOver = React.forwardRef((props,ref) => {
                     quizLevel < levelNames.length ?(
                         <Fragment>
                             <p className="successMsg">Bien joué ,passez au niveau suivant !</p>
-                            <button className="btnResult success">Niveau Suivant</button>
+                            <button 
+                                className="btnResult success"
+                                onClick={() => loadLevelQuestions(quizLevel)}
+                            >
+                                Niveau Suivant
+                            </button>
                         </Fragment>
                     ):
                     (
                         <Fragment>
-                            <p className="successMsg">Bien joué , vous êtes un expert !</p>
-                            <button className="btnResult gameOver">Niveau Suivant</button>
+                            <p className="successMsg">
+                                <GiTrophyCup size='50px'/>
+                                Bien joué , vous êtes un expert !
+                                
+                            </p>
+                            <button 
+                                className="btnResult gameOver"
+                                onClick={() => loadLevelQuestions(0)}
+                            >
+                                Accueil
+                            </button>
                         </Fragment>
                     )
                 }
@@ -74,6 +95,7 @@ const QuizOver = React.forwardRef((props,ref) => {
     (
         <tr>           
             <td colSpan="3">
+                <div className="loader"></div>
                 <p style={{
                     textAlign:'center',
                     color:"red"
