@@ -1,11 +1,19 @@
-import React, {Component} from 'react';
-import {QuizMarvel} from '../QuizMarvel';
+import React, {Component, Fragment } from 'react';
+import {toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.min.css';
+import { QuizMarvel } from '../QuizMarvel';
 import Levels from '../Levels';
 import ProgressBar from '../ProgressBar';
+import QuizOver from '../QuizOver';
+
+
+
+toast.configure();
+//const levelNames = ["debutant", "confirme", "expert"];
 
 class Quiz extends Component {
     state = {
-        levelNames: ["debutant", "confirme", "expert" ],
+        levelNames : ["debutant", "confirme", "expert"],
         quizLevel : 0,
         maxQuestions: 10,
         storedQuestions:[],
@@ -14,10 +22,14 @@ class Quiz extends Component {
         idQuestion: 0,
         disabled:true,
         userAnswer: null,
-        score: 0
+        score: 0,
+        showWelcomeMsg:false,
+        quizEnd:false
     }
 
     storedDataRef = React.createRef();
+
+  
 
     loadQuestions = Level =>{
         const fetchedArrayQuiz = QuizMarvel[0].quizz[Level];
@@ -29,10 +41,9 @@ class Quiz extends Component {
             this.setState({
                 storedQuestions: newArray
             })
-        }else{
-            console.log("Pas assez de question")
         }
     }
+
     componentDidMount(){
         this.loadQuestions(this.state.levelNames[this.state.quizLevel])
     }
@@ -44,9 +55,9 @@ class Quiz extends Component {
             })
         }
 
-        if(this.state.idQuestion !== prevState.idQuestion){
+        if((this.state.idQuestion !== prevState.idQuestion) && this.state.storedQuestions.length){
 
-            console.log('oulaaa')
+          
             this.setState({
                 question: this.state.storedQuestions[this.state.idQuestion].question,
                 options: this.state.storedQuestions[this.state.idQuestion].options,
@@ -55,7 +66,15 @@ class Quiz extends Component {
 
             })
         }
+        /*************
+         * * On recupere le pseudo pour l'afficher
+         *************/
+        if(this.props.userData.pseudo){
+           // console.log(this.props.userData.pseudo)
+            this.showWelcomeMsg(this.props.userData.pseudo)
+        }
     }
+   
     submitAnswer = seltectedAnswer => {
         this.setState({
             userAnswer: seltectedAnswer,
@@ -66,11 +85,12 @@ class Quiz extends Component {
     nextQuestion =()=>{
         if(this.state.idQuestion === this.state.maxQuestions - 1){
             //end
+            this.gameOver();
         }else{
             this.setState(prevState => ({
                 idQuestion : prevState.idQuestion + 1
             }))
-            console.log('jesuila');
+           
         }
 
         const goodAnswer = this.storedDataRef.current[this.state.idQuestion].answer;
@@ -79,11 +99,69 @@ class Quiz extends Component {
             this.setState(prevState => ({
                 score: prevState.score + 1
             }))
+            toast.success(`Bravo +1`, {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: false,
+                
+                });
+        }else{
+            toast.error(`Raté 0`, {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: false,
+                
+                });
         }
 
     }
+    showWelcomeMsg = pseudo => {
+        if(!this.state.showWelcomeMsg){
+            this.setState({
+                showWelcomeMsg:true
+            })
+            toast.warn(`Bienvenue  ${pseudo}, et bonne chance!`, {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: false,
+                bodyClassName: "toastify-color"
+                
+                });
+        }
+    }
+
+    getPercentage = (maxQuest,ourScore) =>( ourScore / maxQuest)*100;
+
+    gameOver = () =>{
+
+        const gradepercent = this.getPercentage(this.state.maxQuestions, this.state.score);
+
+        if(gradepercent >= 50){
+            this.setState({
+                quizLevel: this.state.quizLevel +1 ,
+                percent : gradepercent,
+                quizEnd: true
+            })
+        }else{
+            this.setState({            
+                percent : gradepercent,
+                quizEnd: true
+            })
+        }
+     
+    }
+
     render(){
-      
+        // console.log(this.props.userData)
         const displayOption = this.state.options.map((option, index)=>{
             return (
                 <p key={index}
@@ -94,10 +172,24 @@ class Quiz extends Component {
                 </p>
                 )
         })
-        return (
-            <div>
+        return this.state.quizEnd ? (
+            <QuizOver
+                ref={this.storedDataRef} 
+                levelNames={this.state.levelNames}
+                score={this.state.score}
+                maxQuestions={this.state.maxQuestions}
+                quizLevel={this.state.quizLevel}
+                percent={this.state.percent}               
+            />
+        )
+        :
+        (
+            <Fragment>
                 <Levels/>
-                <ProgressBar/>
+                <ProgressBar 
+                    idQuestion={this.state.idQuestion}
+                    maxQuestions={this.state.maxQuestions}
+                />
                 <h2>{this.state.question}</h2>
                 {displayOption}
                 <button
@@ -105,10 +197,11 @@ class Quiz extends Component {
                     className="btnSubmit"
                     onClick={()=> this.nextQuestion()}
                     >
-                        Suivant
-                    </button>
-            </div>
-         )
+                    {this.state.idQuestion < this.state.maxQuestions-1 ? "Suivant":"Terminer"}
+                </button>
+            </Fragment>
+        )
+       
     }
 }
 

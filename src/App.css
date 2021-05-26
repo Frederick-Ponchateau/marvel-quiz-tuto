@@ -852,7 +852,12 @@ input:checked+.slider:before {
     flex-basis: 300px;
   }
 }
+/*   TOASTIFY COLOR   */ 
 
+.toastify-color{
+  color: var(--black-color);
+}
+/*   END TOASTIFY COLOR   */ 
 @media screen and (max-width: 980px) {
   /* Change Modal elements */
   .modalBody {

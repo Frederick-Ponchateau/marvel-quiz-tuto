@@ -10,17 +10,13 @@ const Welcome = props => {
 
     const [userSession, setUserSession] = useState(null);
 
-    const [userData, setUserData] = useState(null);
+    const [userData, setUserData] = useState({});
 
     useEffect(() => {
        let listener = firebase.auth.onAuthStateChanged(user => {
-        if (user) {
-            setUserSession(user)
-        } else {
-            props.history.push('/');
-        }          
+        user ? setUserSession(user) : props.history.push('/');
         });
-        if(userSession !== null){
+        if(!!userSession){
             firebase.user(userSession.uid)
             .get()
             .then(doc => {
@@ -36,7 +32,7 @@ const Welcome = props => {
         return () => {
             listener()
         }
-    }, [userSession])
+    }, [userSession, firebase, props.history])
 
     
    return userSession === null ?(
@@ -45,7 +41,7 @@ const Welcome = props => {
                 <p className="loaderText">Loading ...</p>
             </div>
         </Fragment>
-    ) : ( 
+    ):( 
         <div className="quiz-bg">
             <div className="container">
                 <Logout/>
