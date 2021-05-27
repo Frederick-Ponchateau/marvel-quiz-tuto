@@ -1,9 +1,9 @@
 import React, {Fragment,useEffect,useState} from 'react';
 import {GiTrophyCup} from 'react-icons/gi';
+import Loader from '../Loader/Loader';
 
 const QuizOver = React.forwardRef((props,ref) => {
-    //console.log(props);
-    //console.log(ref);
+  
     const {
         levelNames, 
         score,
@@ -22,7 +22,6 @@ const QuizOver = React.forwardRef((props,ref) => {
     const averageGrade = maxQuestions/2;
 
     if(score < averageGrade){
-        //setTimeout(()=> loadLevelQuestions(0),3000);
         setTimeout(()=> loadLevelQuestions(quizLevel),3000);
     }
 
@@ -95,11 +94,11 @@ const QuizOver = React.forwardRef((props,ref) => {
     (
         <tr>           
             <td colSpan="3">
-                <div className="loader"></div>
-                <p style={{
+                <Loader loadingMsg={"Pas de réponses!"}
+                styling={{ 
                     textAlign:'center',
                     color:"red"
-                }}>Pas de réponses!</p>
+                }}/>
             </td>
         </tr>
     )
