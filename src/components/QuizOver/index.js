@@ -31,24 +31,54 @@ console.log(API_PUBLIC_KEY)
 
     useEffect(()=>{
         setasked(ref.current)
+
+        if(localStorage.getItem("marvelStorageDate")){
+            const date = localStorage.getItem("marvelStorageDate");
+            checkDataAge(date);
+        }
     },[ref])
+    const checkDataAge = date => {
+        const today= Date.now();
+        const timeDifference = today - date;
+        const daysDiference = timeDifference/ (1000 * 3600 * 24)
+        if(daysDiference>=15){
+            localStorage.clear();
+            localStorage.setItem('marvelStorageDate', Date.now());
+        }
+    }
 
     const showModal = id => {
         setOpenMdl(true);
 
-        axios
-        .get(`https://gateway.marvel.com/v1/public/characters/${id}?apikey=${API_PUBLIC_KEY}`)
-        .then(response=>{
-            setcharacterInfos(response.data);
+        if(localStorage.getItem(id)){
+            setcharacterInfos(JSON.parse(localStorage.getItem(id)));
             setLoading(false);
-        })
-        .catch(error => {console.log(error)})
+        }else{
+
+            axios
+            .get(`https://gateway.marvel.com/v1/public/characters/${id}?apikey=${API_PUBLIC_KEY}`)
+            .then(response=>{
+                setcharacterInfos(response.data);
+                setLoading(false);
+                
+                localStorage.setItem(id , JSON.stringify(response.data));
+                
+                if(!localStorage.getItem('marvelStorageDate')){
+                    localStorage.setItem('marvelStorageDate',Date.now());
+                }
+            })
+            .catch(error => {console.log(error)})
+        }
     }
 
     const hideModal = () => {
         setOpenMdl(false);
         setLoading(true);
     }
+
+    const capitalizeFirstletter = string => {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+     }
 
     const averageGrade = maxQuestions/2;
 
@@ -145,10 +175,36 @@ console.log(API_PUBLIC_KEY)
                 <h2>{characterInfos.data.results[0].name}</h2>
             </div>
             <div className="modalBody">
-                <h3>Titre 2</h3>
+                <div className="comicImage">
+                    <img 
+                        src={characterInfos.data.results[0].thumbnail.path+'.'+characterInfos.data.results[0].thumbnail.extension} 
+                        alt={characterInfos.data.results[0].name}
+                    />
+                    <p>{characterInfos.attributionText}</p>
+                </div>
+                <div className="comicDetails">
+                    <h3> Description </h3>
+                    {
+                        characterInfos.data.results[0].description ?
+                        <p>{characterInfos.data.results[0].description}</p>
+                        : <p>Description Indisponible</p>
+                    }
+                    <h3>Plus d'infos</h3>
+                    {
+                        characterInfos.data.results[0].urls &&
+                        characterInfos.data.results[0].urls.map((url,index)=> {
+                            return <a 
+                                key={index}
+                                href={url.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >{capitalizeFirstletter(url.type)}</a>
+                        })
+                    }
+                </div>
             </div>
             <div className="modalFooter">
-                <button className="modalBtn">Fermer</button>
+                <button className="modalBtn" onClick={hideModal}>Fermer</button>
             </div>
         </Fragment>
     ) 
